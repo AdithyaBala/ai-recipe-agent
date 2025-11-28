@@ -1,0 +1,8 @@
+# Ignore all data by default
+data/*
+echo "models/*.joblib" >> .gitignore
+# But keep these small helper files
+!data/.gitkeep
+!data/README.md
+!data/sample_recipes.csv
+
