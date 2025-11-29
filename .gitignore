@@ -1,8 +1,15 @@
-# Ignore all data by default
+# Ignore raw & large data
 data/*
-echo "models/*.joblib" >> .gitignore
-# But keep these small helper files
 !data/.gitkeep
 !data/README.md
 !data/sample_recipes.csv
 
+# Ignore raw CSV specifically (if present)
+data/RAW_recipes.csv
+
+# Ignore all model artifacts (can be regenerated)
+models/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc

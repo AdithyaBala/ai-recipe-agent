@@ -3,5 +3,6 @@ numpy
 scikit-learn
 joblib
 gradio
-openai
-python-dotenv
+transformers
+torch
+accelerate
