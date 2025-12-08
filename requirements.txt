@@ -6,3 +6,5 @@ gradio
 transformers
 torch
 accelerate
+chromadb
+sentence-transformers

@@ -11,5 +11,7 @@ data/RAW_recipes.csv
 models/
 
 # Ignore Python cache files
-__pycache__/
+*/__pycache__/
 *.pyc
+
+.venv/
