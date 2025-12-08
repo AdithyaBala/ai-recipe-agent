@@ -1,228 +1,364 @@
-# src/generator.py  -- local model with heuristic fallback for better recipes
+# src/generator.py
+# Agent-aware recipe generation with pluggable model backends
 
-from typing import Optional, List, Dict
+import json
+import os
 import re
+from dataclasses import dataclass
+from typing import Callable, Dict, List, Optional, Tuple
 
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
+# Defaults can be overridden via env vars to swap providers/models without code changes.
+DEFAULT_PROVIDER = os.getenv("MODEL_PROVIDER", "hf")
+DEFAULT_MODEL_ID = os.getenv("MODEL_ID", "MBZUAI/LaMini-Flan-T5-783M")
+HF_FALLBACK_MODEL = "google/flan-t5-small"
 
-# If this is too heavy, change to "google/flan-t5-small"
-MODEL_NAME = "google/flan-t5-base"
-
-print(f"Loading local text2text-generation model: {MODEL_NAME} (first time may take a while)...")
-
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
-
-text2text = pipeline(
-    "text2text-generation",
-    model=model,
-    tokenizer=tokenizer,
-)
+# Cache loaded generators so we only hit disk once.
+_GEN_CACHE: Dict[Tuple[str, str, Optional[str]], Callable] = {}
 
 
-# ---------- helpers for structure ----------
+@dataclass
+class GenerationConfig:
+    provider: str = DEFAULT_PROVIDER  # hf | llama-cpp | ollama | openai | groq
+    model_id: str = DEFAULT_MODEL_ID
+    model_path: Optional[str] = None  # for llama-cpp local gguf files
+    temperature: float = 0.5
+    top_p: float = 0.9
+    max_new_tokens: int = 256
 
-def _clean_ingredients(user_ingredients: List[str]) -> List[str]:
-    """Normalize user ingredients and add a couple of common pantry items."""
+
+# ---------- basic text utilities ----------
+
+def _normalize(text: str) -> str:
+    return text.strip().lower()
+
+
+def normalize_ingredients_list(ingredients: List[str]) -> List[str]:
     cleaned = []
-    for ing in user_ingredients:
-        ing = ing.strip().lower()
-        if ing:
-            cleaned.append(ing)
-
-    # Deduplicate while preserving order
     seen = set()
-    unique = []
-    for ing in cleaned:
-        if ing not in seen:
-            seen.add(ing)
-            unique.append(ing)
-
-    # Add some common extras if not already present
-    for extra in ["salt", "black pepper", "olive oil"]:
-        if extra not in seen:
-            unique.append(extra)
-
-    return unique
+    for ing in ingredients:
+        ing_norm = _normalize(ing)
+        if ing_norm and ing_norm not in seen:
+            seen.add(ing_norm)
+            cleaned.append(ing_norm)
+    return cleaned
 
 
 def _make_title(ingredients: List[str]) -> str:
-    """Simple heuristic title based on first 1–2 ingredients."""
     if not ingredients:
         return "Simple Home-Cooked Dish"
-
     main = ingredients[0].title()
     if len(ingredients) > 1:
-        second = ingredients[1].title()
-        return f"{main} and {second} Recipe"
+        return f"{main} and {ingredients[1].title()} Recipe"
     return f"{main} Recipe"
 
 
-# ---------- heuristic fallback steps ----------
-
 COMMON_VERBS = [
-    "chop", "dice", "slice", "mince",
-    "heat", "cook", "fry", "bake", "boil", "simmer", "saute", "stir",
-    "add", "mix", "combine", "season", "serve",
+    "chop",
+    "dice",
+    "slice",
+    "mince",
+    "heat",
+    "cook",
+    "fry",
+    "bake",
+    "boil",
+    "simmer",
+    "saute",
+    "stir",
+    "add",
+    "mix",
+    "combine",
+    "season",
+    "serve",
 ]
 
 
 def _fallback_steps(ingredients: List[str]) -> str:
-    """Generic but sensible cooking steps using the ingredients."""
+    """Lightweight heuristic recipe steps when the model output is unusable."""
     main = ingredients[0] if ingredients else "main ingredient"
-    others = [ing for ing in ingredients[1:] if ing not in ["salt", "black pepper", "olive oil"]]
+    others = [ing for ing in ingredients[1:] if ing not in ["salt", "pepper", "oil", "water"]]
 
-    aromatics = [ing for ing in others if any(x in ing for x in ["onion", "garlic", "ginger"])]
-    grains = [ing for ing in others if any(x in ing for x in ["rice", "pasta", "noodle", "quinoa"])]
-    veggies = [ing for ing in others if ing not in aromatics + grains]
+    steps = [
+        f"1. Prep the ingredients. Cut the {main} into bite-sized pieces and chop any vegetables you have ({', '.join(others) or 'if any'}).",
+        "2. Heat a little oil in a pan over medium heat. Add aromatics like onion or garlic if available and cook until fragrant.",
+        f"3. Add the {main} to the pan, season with salt and pepper, and cook until mostly done.",
+    ]
 
-    steps = []
-
-    # 1. Prep
-    prep_items = aromatics + veggies
-    if prep_items:
+    if others:
         steps.append(
-            f"1. Wash and prep the ingredients. Finely chop the {', '.join(prep_items)} and cut the {main} into bite-sized pieces."
+            f"4. Stir in the remaining ingredients ({', '.join(others)}). Cook until tender and well combined."
         )
+
+    steps.append("5. Taste and adjust seasoning. Serve warm.")
+    return "\n".join(steps)
+
+
+# ---------- model backends ----------
+
+def _build_hf_generator(model_id: str) -> Callable:
+    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
+
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_id)
+    pipe = pipeline("text2text-generation", model=model, tokenizer=tokenizer)
+
+    def _generate(prompt: str, max_new_tokens: int, temperature: float, top_p: float) -> str:
+        return pipe(
+            prompt,
+            max_new_tokens=max_new_tokens,
+            do_sample=True,
+            temperature=temperature,
+            top_p=top_p,
+            num_return_sequences=1,
+        )[0]["generated_text"]
+
+    return _generate
+
+
+def _build_llama_cpp_generator(model_path: str) -> Callable:
+    try:
+        from llama_cpp import Llama
+    except ImportError as exc:
+        raise RuntimeError(
+            "Install llama-cpp-python to use provider 'llama-cpp' (pip install llama-cpp-python)."
+        ) from exc
+
+    llm = Llama(model_path=model_path, n_ctx=4096, verbose=False)
+
+    def _generate(prompt: str, max_new_tokens: int, temperature: float, top_p: float) -> str:
+        output = llm(
+            prompt,
+            max_tokens=max_new_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            stop=["</s>", "###"],
+        )
+        return output["choices"][0]["text"]
+
+    return _generate
+
+
+def _build_ollama_generator(model_id: str) -> Callable:
+    try:
+        import ollama
+    except ImportError as exc:
+        raise RuntimeError("Install ollama package to use provider 'ollama'.") from exc
+
+    def _generate(prompt: str, max_new_tokens: int, temperature: float, top_p: float) -> str:
+        res = ollama.chat(
+            model=model_id,
+            messages=[{"role": "user", "content": prompt}],
+            options={"temperature": temperature, "top_p": top_p, "num_predict": max_new_tokens},
+        )
+        return res["message"]["content"]
+
+    return _generate
+
+
+def _build_openai_generator(model_id: str, api_key: Optional[str], base_url: Optional[str]) -> Callable:
+    try:
+        from openai import OpenAI
+    except ImportError as exc:
+        raise RuntimeError("Install openai to use provider 'openai'.") from exc
+
+    client = OpenAI(api_key=api_key or os.getenv("OPENAI_API_KEY"), base_url=base_url)
+
+    def _generate(prompt: str, max_new_tokens: int, temperature: float, top_p: float) -> str:
+        resp = client.chat.completions.create(
+            model=model_id,
+            messages=[
+                {"role": "system", "content": "You are a concise home cooking assistant."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=temperature,
+            top_p=top_p,
+            max_tokens=max_new_tokens,
+        )
+        return resp.choices[0].message.content
+
+    return _generate
+
+
+def _build_groq_generator(model_id: str, api_key: Optional[str]) -> Callable:
+    try:
+        from groq import Groq
+    except ImportError as exc:
+        raise RuntimeError("Install groq to use provider 'groq'.") from exc
+
+    client = Groq(api_key=api_key or os.getenv("GROQ_API_KEY"))
+
+    def _generate(prompt: str, max_new_tokens: int, temperature: float, top_p: float) -> str:
+        resp = client.chat.completions.create(
+            model=model_id,
+            messages=[
+                {"role": "system", "content": "You are a concise home cooking assistant."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=temperature,
+            top_p=top_p,
+            max_tokens=max_new_tokens,
+        )
+        return resp.choices[0].message.content
+
+    return _generate
+
+
+def _get_generator(config: GenerationConfig) -> Callable:
+    key = (config.provider, config.model_id, config.model_path)
+    if key in _GEN_CACHE:
+        return _GEN_CACHE[key]
+
+    if config.provider == "hf":
+        try:
+            gen = _build_hf_generator(config.model_id)
+        except Exception:
+            # Lightweight fallback if preferred model fails.
+            gen = _build_hf_generator(HF_FALLBACK_MODEL)
+    elif config.provider == "llama-cpp":
+        if not config.model_path:
+            raise ValueError("model_path is required for provider 'llama-cpp'.")
+        gen = _build_llama_cpp_generator(config.model_path)
+    elif config.provider == "ollama":
+        gen = _build_ollama_generator(config.model_id)
+    elif config.provider == "openai":
+        gen = _build_openai_generator(config.model_id, api_key=os.getenv("OPENAI_API_KEY"), base_url=None)
+    elif config.provider == "groq":
+        gen = _build_groq_generator(config.model_id, api_key=os.getenv("GROQ_API_KEY"))
     else:
-        steps.append(
-            f"1. Wash and prep the ingredients. Cut the {main} into bite-sized pieces and gather the remaining ingredients."
-        )
+        raise ValueError(f"Unknown provider: {config.provider}")
 
-    # 2. Heat oil & aromatics
-    if aromatics:
-        steps.append(
-            "2. Heat a little olive oil in a pan over medium heat. Add the chopped aromatics and cook for a few minutes until fragrant and softened."
-        )
-    else:
-        steps.append(
-            "2. Heat a little olive oil in a pan over medium heat."
-        )
-
-    # 3. Cook the main
-    steps.append(
-        f"3. Add the {main} to the pan. Season with salt and black pepper and cook, stirring occasionally, until mostly cooked through."
-    )
-
-    # 4. Add grains/veggies
-    if grains:
-        steps.append(
-            f"4. Add the {', '.join(grains)} and enough water or broth to cook them. Bring to a simmer, cover, and cook until tender, stirring occasionally."
-        )
-    if veggies:
-        steps.append(
-            f"5. Stir in the remaining vegetables ({', '.join(veggies)}). Cook for a few more minutes until tender but still bright."
-        )
-
-    # Final step
-    final_step_num = len(steps) + 1 if veggies or grains else len(steps) + 1
-    steps.append(
-        f"{final_step_num}. Taste and adjust the seasoning with more salt and black pepper if needed. Serve warm."
-    )
-
-    # Re-number steps correctly
-    renumbered = []
-    for i, s in enumerate(steps, start=1):
-        # remove existing "N." at start and re-add
-        s = re.sub(r"^\d+\.\s*", "", s)
-        renumbered.append(f"{i}. {s}")
-
-    return "\n".join(renumbered)
+    _GEN_CACHE[key] = gen
+    return gen
 
 
-# ---------- model-based steps with quality check ----------
+# ---------- prompt + parsing ----------
 
-def _generate_steps_with_model(
-    ingredients: List[str],
-    retrieved_recipe: Optional[Dict],
-) -> str:
-    """Ask the model for steps, then check if they look reasonable."""
-    ingredients_str = ", ".join(ingredients)
-
+def _build_prompt(ingredients: List[str], retrieved_recipe: Optional[Dict]) -> str:
+    ing_str = ", ".join(ingredients)
     prompt = (
-        "You are an expert home cook. Write clear, numbered cooking steps for a home recipe "
-        f"using these ingredients: {ingredients_str}. "
-        "Assume the cook has basic kitchen equipment and knows simple techniques.\n\n"
+        "You are an expert home cook. Create a concise recipe using ONLY these ingredients: "
+        f"{ing_str}.\n"
+        "Do NOT invent new ingredients. It's fine to include pantry staples already listed.\n"
+        "Return a JSON object with keys: title (string), ingredients (list of strings), steps (list of strings).\n"
+        "Ensure steps are ordered actions for a home cook. Keep it brief but clear."
     )
-
-    if retrieved_recipe is not None:
+    if retrieved_recipe:
         prompt += (
-            "Here is a similar existing recipe from a dataset for inspiration:\n"
-            f"Title: {retrieved_recipe['title']}\n"
-            f"Ingredients: {', '.join(retrieved_recipe['ingredients'])}\n"
-            f"Instructions: {retrieved_recipe['instructions'][:300]}...\n\n"
+            "\nHere is a similar recipe for inspiration (do not copy ingredients outside the allowed list):\n"
+            f"Title: {retrieved_recipe.get('title','')}\n"
+            f"Ingredients: {', '.join(retrieved_recipe.get('ingredients', []))}\n"
+            f"Instructions: {retrieved_recipe.get('instructions','')[:300]}...\n"
         )
-
-    prompt += (
-        "Now write the steps for a NEW recipe. Output only the steps as a numbered list like:\n"
-        "1. ...\n"
-        "2. ...\n"
-        "3. ...\n"
-        "Make sure there are at least 4 steps and each step describes an action, "
-        "not just a list of ingredients."
-    )
-
-    raw = text2text(
-        prompt,
-        max_new_tokens=256,
-        do_sample=True,
-        temperature=0.8,
-        top_p=0.9,
-        num_return_sequences=1,
-    )[0]["generated_text"].strip()
-
-    # Parse numbered lines
-    lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
-    numbered = [ln for ln in lines if re.match(r"^\d+\.", ln)]
-    text = "\n".join(numbered) if numbered else raw
-
-    # Basic quality checks
-    long_enough = len(text) > 80
-    has_multiple_steps = len(numbered) >= 3
-    has_verbs = any(v in text.lower() for v in COMMON_VERBS)
-
-    if not (long_enough and has_multiple_steps and has_verbs):
-        # Fail -> we'll let caller fall back to heuristic
-        return ""
-
-    return text
+    return prompt
 
 
-# ---------- main entry point ----------
+def _extract_json_block(text: str) -> Optional[str]:
+    try:
+        return json.dumps(json.loads(text))
+    except Exception:
+        pass
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+    if match:
+        snippet = match.group(0)
+        try:
+            json.loads(snippet)
+            return snippet
+        except Exception:
+            return None
+    return None
+
+
+def _parse_recipe_text(raw: str) -> Dict:
+    json_block = _extract_json_block(raw)
+    if not json_block:
+        return {}
+    try:
+        data = json.loads(json_block)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _format_steps(steps: List[str]) -> str:
+    formatted = []
+    for idx, step in enumerate(steps, start=1):
+        s = step.strip()
+        if not s:
+            continue
+        s = re.sub(r"^\d+[\.\)]\s*", "", s)
+        formatted.append(f"{idx}. {s}")
+    return "\n".join(formatted)
+
+
+# ---------- public API ----------
 
 def generate_recipe(
-    user_ingredients: List[str],
+    ingredients: List[str],
     retrieved_recipe: Optional[Dict] = None,
     total_time_minutes: int = 30,
-) -> str:
+    config: Optional[GenerationConfig] = None,
+) -> Dict:
     """
-    Build a full recipe in markdown.
-
-    - Title: heuristic from ingredients
-    - Ingredients: cleaned user ingredients + basic pantry items
-    - Steps: try model; if bad, fall back to heuristic steps
+    Return a structured recipe dict: {title, ingredients, steps, raw, total_time}
+    Ingredients are user-provided (already planned by the agent).
     """
-    ing_list = _clean_ingredients(user_ingredients)
-    title = _make_title(ing_list)
+    config = config or GenerationConfig()
+    ing_list = normalize_ingredients_list(ingredients)
+    gen_fn = _get_generator(config)
+    prompt = _build_prompt(ing_list, retrieved_recipe)
 
-    model_steps = _generate_steps_with_model(ing_list, retrieved_recipe)
-    if model_steps:
-        steps_text = model_steps
+    try:
+        raw = gen_fn(
+            prompt,
+            max_new_tokens=config.max_new_tokens,
+            temperature=config.temperature,
+            top_p=config.top_p,
+        )
+    except Exception as exc:
+        raw = ""
+        error_note = f"[Generation failed: {exc}]"
     else:
-        steps_text = _fallback_steps(ing_list)
+        error_note = ""
 
-    ingredients_block = "\n".join(f"- {ing}" for ing in ing_list)
+    parsed = _parse_recipe_text(raw)
+    title = parsed.get("title") if isinstance(parsed, dict) else None
+    parsed_ings = parsed.get("ingredients") if isinstance(parsed, dict) else None
+    parsed_steps = parsed.get("steps") if isinstance(parsed, dict) else None
 
-    recipe_md = (
-        f"Title: {title}\n\n"
-        f"Ingredients:\n{ingredients_block}\n\n"
-        f"Steps:\n{steps_text}\n\n"
-        f"Total time: {total_time_minutes} minutes\n"
+    recipe_ingredients = (
+        [str(i).strip() for i in parsed_ings if str(i).strip()] if parsed_ings else ing_list
+    )
+    steps_text = (
+        _format_steps([str(s) for s in parsed_steps]) if parsed_steps else ""
     )
 
-    return recipe_md
+    if not steps_text or not any(v in steps_text.lower() for v in COMMON_VERBS):
+        steps_text = _fallback_steps(ing_list)
+
+    recipe = {
+        "title": title or _make_title(ing_list),
+        "ingredients": recipe_ingredients,
+        "steps": steps_text,
+        "raw": raw or error_note,
+        "total_time": total_time_minutes,
+    }
+    return recipe
+
+
+def render_recipe_markdown(recipe: Dict) -> str:
+    ingredients_block = "\n".join(f"- {ing}" for ing in recipe.get("ingredients", []))
+    steps = recipe.get("steps", "")
+    title = recipe.get("title", "Recipe")
+    total_time = recipe.get("total_time", 30)
+    return (
+        f"**{title}**\n\n"
+        f"Ingredients:\n{ingredients_block}\n\n"
+        f"Steps:\n{steps}\n\n"
+        f"Total time: {total_time} minutes\n"
+    )
 
 
 if __name__ == "__main__":
     example_ings = ["chicken", "rice", "onion", "garlic"]
-    print(generate_recipe(example_ings))
+    recipe = generate_recipe(example_ings)
+    print(render_recipe_markdown(recipe))

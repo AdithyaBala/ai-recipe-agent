@@ -106,10 +106,15 @@ def retrieve(user_ingredients: List[str], top_k: int = 5):
     recipes = []
     for doc, meta, dist in zip(docs, metas, distances):
         similarity = 1 - dist if dist is not None else None
+        ingredients = meta.get("ingredients_json")
+        try:
+            ingredients = json.loads(ingredients) if isinstance(ingredients, str) else []
+        except Exception:
+            ingredients = []
         recipes.append(
             {
                 "title": meta.get("title"),
-                "ingredients": meta.get("ingredients", []),
+                "ingredients": ingredients,
                 "instructions": meta.get("instructions", ""),
                 "similarity": similarity,
                 "match_ingredients": doc,

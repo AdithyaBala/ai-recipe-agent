@@ -1,73 +1,96 @@
 # src/app.py
 
+from pathlib import Path
+
 import gradio as gr
-
-from .retrieval import retrieve
-from .generator import generate_recipe   # <-- now local HF version
+from dotenv import load_dotenv
 
 
-def run_pipeline(
-    ingredient_text: str,
-    top_k: int = 3,
-    use_retrieval: bool = True,
-):
-    ingredients = [
-        part.strip()
-        for part in ingredient_text.split(",")
-        if part.strip()
-    ]
-    if not ingredients:
-        return "Please enter at least one ingredient, separated by commas."
+def _load_env():
+    """
+    Load environment variables from a root .env file and any *.env files inside a .env/ folder.
+    This avoids needing `export` commands for keys like GROQ_API_KEY.
+    """
+    # Load default .env at repo root if present
+    load_dotenv()
 
-    retrieved_recipe = None
-    baseline_preview = ""
+    env_dir = Path(".env")
+    if env_dir.is_dir():
+        for env_file in env_dir.glob("*.env"):
+            load_dotenv(env_file)
 
-    if use_retrieval:
-        retrieved = retrieve(ingredients, top_k=top_k)
-        if retrieved:
-            retrieved_recipe = retrieved[0]
-            baseline_preview = (
-                f"**Baseline retrieved recipe:**\n\n"
-                f"**{retrieved_recipe['title']}**\n\n"
-                f"**Ingredients (dataset):**\n"
-                + "\n".join(f"- {ing}" for ing in retrieved_recipe["ingredients"])
-                + "\n\n"
-            )
-        else:
-            baseline_preview = "_No similar recipes found in dataset._\n\n"
 
-    generated = generate_recipe(ingredients, retrieved_recipe)
+_load_env()
 
-    result_md = baseline_preview + "\n---\n\n" + "**AI-generated recipe:**\n\n" + generated
-    return result_md
+from .agent import run_agent
+
+
+PROVIDER = "groq"
+MODEL_ID = "llama-3.3-70b-versatile"
+
+
+def run_agent_groq(ingredients: str, k: int, use_retrieval: bool):
+    try:
+        result = run_agent(
+            ingredient_text=ingredients,
+            top_k=int(k),
+            use_retrieval=use_retrieval,
+            model_provider=PROVIDER,
+            model_id=MODEL_ID,
+        )
+    except Exception as exc:
+        return f"Error: {exc}", ""
+
+    status_log = "\n".join(f"- {line}" for line in result.status_log)
+    status_md = f"{status_log}\n\nRetrieval preview:\n{result.retrieved_preview}"
+    return status_md, result.recipe_markdown
 
 
 def main():
-    iface = gr.Interface(
-        fn=run_pipeline,
-        inputs=[
-            gr.Textbox(
-                lines=2,
-                label="Ingredients (comma-separated)",
-                placeholder="e.g. chicken, rice, onion, garlic",
-            ),
-            gr.Slider(
-                minimum=1,
-                maximum=10,
-                step=1,
-                value=3,
-                label="Top-K retrieved recipes",
-            ),
-            gr.Checkbox(
-                value=True,
-                label="Use retrieved recipe as context",
-            ),
-        ],
-        outputs=gr.Markdown(label="Output"),
-        title="Ingredient-based Recipe Generator (Local Model)",
-        description="Runs completely locally using an open-source model.",
-    )
-    iface.launch()
+    with gr.Blocks(title="AI Recipe Agent") as demo:
+        gr.Markdown("# 🍳 Agentic Recipe Generator (Groq Edition)")
+        gr.Markdown(
+            "Enter your ingredients. The Agent will plan, retrieve context, generate a recipe, "
+            "and critique it to ensure no made-up ingredients. "
+            f"Model: {MODEL_ID} via Groq."
+        )
+
+        with gr.Row():
+            with gr.Column(scale=1):
+                ingredients_input = gr.Textbox(
+                    label="Ingredients (comma-separated)",
+                    placeholder="e.g. chicken, rice, onion, garlic",
+                    lines=2,
+                )
+                with gr.Row():
+                    k_slider = gr.Slider(
+                        minimum=1,
+                        maximum=10,
+                        value=3,
+                        step=1,
+                        label="Retrieved Recipes (Context)",
+                    )
+                    retrieval_checkbox = gr.Checkbox(
+                        value=True,
+                        label="Enable Memory (RAG)",
+                    )
+                submit_btn = gr.Button("Generate Recipe", variant="primary")
+
+            with gr.Column(scale=1):
+                status_output = gr.Textbox(
+                    label="Agent Status Log",
+                    interactive=False,
+                    lines=12,
+                )
+                recipe_output = gr.Markdown(label="Generated Recipe")
+
+        submit_btn.click(
+            fn=run_agent_groq,
+            inputs=[ingredients_input, k_slider, retrieval_checkbox],
+            outputs=[status_output, recipe_output],
+        )
+
+    demo.launch()
 
 
 if __name__ == "__main__":

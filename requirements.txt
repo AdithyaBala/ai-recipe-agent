@@ -8,3 +8,5 @@ torch
 accelerate
 chromadb
 sentence-transformers
+groq
+python-dotenv

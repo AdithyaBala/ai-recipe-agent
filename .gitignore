@@ -15,3 +15,7 @@ models/
 *.pyc
 
 .venv/
+
+.DS_Store
+
+.env
