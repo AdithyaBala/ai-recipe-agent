@@ -1,0 +1,650 @@
+{
+  "summary": {
+    "n": 50,
+    "success_rate": 0.0,
+    "constraint_pass_rate": 0.0,
+    "latency_avg_s": 0.0,
+    "latency_median_s": 0.0,
+    "latency_p95_s": 0.0
+  },
+  "per_category": {
+    "single_constraint": {
+      "n": 5,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "multi_constraint": {
+      "n": 4,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "time_pressure": {
+      "n": 3,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "sparse_ingredients": {
+      "n": 4,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "many_ingredients": {
+      "n": 2,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "conflicting_constraints": {
+      "n": 6,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "edge_case": {
+      "n": 4,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "allergy_safety": {
+      "n": 3,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "nutrition_goal": {
+      "n": 3,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "preference_soft_constraint": {
+      "n": 2,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "cuisine_constraint": {
+      "n": 2,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "real_world_pantry": {
+      "n": 1,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "meal_type": {
+      "n": 4,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "control_no_constraints": {
+      "n": 1,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "input_robustness": {
+      "n": 3,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "serving_scale": {
+      "n": 2,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    },
+    "stress_test": {
+      "n": 1,
+      "success_rate": 0.0,
+      "constraint_pass_rate": 0.0,
+      "latency_avg_s": 0.0,
+      "latency_median_s": 0.0,
+      "latency_p95_s": 0.0
+    }
+  },
+  "results": [
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q01_basic_dairy_free",
+      "category": "single_constraint"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q02_basic_vegetarian",
+      "category": "single_constraint"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q03_basic_gluten_free",
+      "category": "single_constraint"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q04_basic_vegan",
+      "category": "single_constraint"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q05_basic_nut_free",
+      "category": "single_constraint"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q06_multi_constraint_vegan_glutenfree",
+      "category": "multi_constraint"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q07_multi_constraint_dairyfree_nutfree",
+      "category": "multi_constraint"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q08_multi_constraint_vegetarian_lowcarb",
+      "category": "multi_constraint"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q09_multi_constraint_glutenfree_dairyfree_vegan",
+      "category": "multi_constraint"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q10_tight_time_limit",
+      "category": "time_pressure"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q11_tight_time_limit_multi_ingredient",
+      "category": "time_pressure"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q12_very_few_ingredients",
+      "category": "sparse_ingredients"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q13_very_few_ingredients_with_constraint",
+      "category": "sparse_ingredients"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q14_single_ingredient",
+      "category": "sparse_ingredients"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q15_pantry_staples_only",
+      "category": "sparse_ingredients"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q16_large_ingredient_list",
+      "category": "many_ingredients"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q17_large_ingredient_list_dietary",
+      "category": "many_ingredients"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q18_conflicting_vegan_and_meat",
+      "category": "conflicting_constraints"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q19_conflicting_dairyfree_and_cheese_heavy",
+      "category": "conflicting_constraints"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q20_conflicting_glutenfree_and_wheat",
+      "category": "conflicting_constraints"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q21_conflicting_time_and_complexity",
+      "category": "conflicting_constraints"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q22_impossible_ingredient_combo",
+      "category": "edge_case"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q23_nonfood_or_ambiguous_input",
+      "category": "edge_case"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q24_allergy_critical_peanut",
+      "category": "allergy_safety"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q25_allergy_critical_shellfish",
+      "category": "allergy_safety"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q26_high_protein_goal",
+      "category": "nutrition_goal"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q27_low_calorie_goal",
+      "category": "nutrition_goal"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q28_kid_friendly",
+      "category": "preference_soft_constraint"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q29_spicy_preference",
+      "category": "preference_soft_constraint"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q30_cuisine_specific_italian",
+      "category": "cuisine_constraint"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q31_cuisine_specific_mexican_vegan",
+      "category": "cuisine_constraint"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q32_leftover_odd_combo",
+      "category": "real_world_pantry"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q33_breakfast_specific",
+      "category": "meal_type"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q34_dessert_specific",
+      "category": "meal_type"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q35_dessert_vegan_glutenfree",
+      "category": "meal_type"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q36_soup_stew",
+      "category": "meal_type"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q37_extremely_long_time_budget",
+      "category": "time_pressure"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q38_zero_dietary_zero_time_control",
+      "category": "control_no_constraints"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q39_repeated_ingredient_typo",
+      "category": "input_robustness"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q40_duplicate_ingredients_in_list",
+      "category": "input_robustness"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q41_conflicting_dietary_tags",
+      "category": "conflicting_constraints"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q42_unrealistic_zero_time",
+      "category": "edge_case"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q43_large_serving_size",
+      "category": "serving_scale"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q44_single_serving",
+      "category": "serving_scale"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q45_keto_strict",
+      "category": "nutrition_goal"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q46_keto_conflict_with_carb_ingredient",
+      "category": "conflicting_constraints"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q47_multiple_allergies_stacked",
+      "category": "allergy_safety"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q48_ambiguous_quantity_free_input",
+      "category": "input_robustness"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "empty ingredient list",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q49_no_ingredients_provided",
+      "category": "edge_case"
+    },
+    {
+      "success": false,
+      "constraint_pass": false,
+      "violations": [],
+      "error": "models/chroma not found. Run `python -m src.data_prep` to build the index.",
+      "top1_title": null,
+      "latency_seconds": 0.0,
+      "id": "q50_all_constraints_stacked",
+      "category": "stress_test"
+    }
+  ]
+}

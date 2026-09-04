@@ -1,0 +1,325 @@
+[
+  {
+    "id": "q01_basic_dairy_free",
+    "category": "single_constraint",
+    "ingredients": ["chicken breast", "broccoli", "garlic", "soy sauce"],
+    "constraints": {"max_time_minutes": 30, "dietary": ["dairy-free"]}
+  },
+  {
+    "id": "q02_basic_vegetarian",
+    "category": "single_constraint",
+    "ingredients": ["rice", "black beans", "canned tomatoes", "onion"],
+    "constraints": {"dietary": ["vegetarian"], "max_time_minutes": 45}
+  },
+  {
+    "id": "q03_basic_gluten_free",
+    "category": "single_constraint",
+    "ingredients": ["ground beef", "corn tortillas", "cheese", "lettuce"],
+    "constraints": {"dietary": ["gluten-free"]}
+  },
+  {
+    "id": "q04_basic_vegan",
+    "category": "single_constraint",
+    "ingredients": ["tofu", "bell pepper", "carrot", "rice noodles"],
+    "constraints": {"dietary": ["vegan"]}
+  },
+  {
+    "id": "q05_basic_nut_free",
+    "category": "single_constraint",
+    "ingredients": ["oats", "banana", "honey", "cinnamon"],
+    "constraints": {"dietary": ["nut-free"]}
+  },
+  {
+    "id": "q06_multi_constraint_vegan_glutenfree",
+    "category": "multi_constraint",
+    "ingredients": ["chickpeas", "spinach", "coconut milk", "rice"],
+    "constraints": {"dietary": ["vegan", "gluten-free"], "max_time_minutes": 40}
+  },
+  {
+    "id": "q07_multi_constraint_dairyfree_nutfree",
+    "category": "multi_constraint",
+    "ingredients": ["salmon", "asparagus", "lemon", "olive oil"],
+    "constraints": {"dietary": ["dairy-free", "nut-free"], "max_time_minutes": 25}
+  },
+  {
+    "id": "q08_multi_constraint_vegetarian_lowcarb",
+    "category": "multi_constraint",
+    "ingredients": ["cauliflower", "eggs", "cheese", "spinach"],
+    "constraints": {"dietary": ["vegetarian", "low-carb"], "max_time_minutes": 30}
+  },
+  {
+    "id": "q09_multi_constraint_glutenfree_dairyfree_vegan",
+    "category": "multi_constraint",
+    "ingredients": ["quinoa", "sweet potato", "kale", "tahini"],
+    "constraints": {"dietary": ["gluten-free", "dairy-free", "vegan"], "max_time_minutes": 35}
+  },
+  {
+    "id": "q10_tight_time_limit",
+    "category": "time_pressure",
+    "ingredients": ["eggs", "spinach", "cheese"],
+    "constraints": {"max_time_minutes": 10}
+  },
+  {
+    "id": "q11_tight_time_limit_multi_ingredient",
+    "category": "time_pressure",
+    "ingredients": ["ground turkey", "onion", "bell pepper", "taco seasoning", "tortillas"],
+    "constraints": {"max_time_minutes": 15}
+  },
+  {
+    "id": "q12_very_few_ingredients",
+    "category": "sparse_ingredients",
+    "ingredients": ["eggs", "salt"],
+    "constraints": {}
+  },
+  {
+    "id": "q13_very_few_ingredients_with_constraint",
+    "category": "sparse_ingredients",
+    "ingredients": ["pasta", "olive oil"],
+    "constraints": {"dietary": ["vegan"], "max_time_minutes": 20}
+  },
+  {
+    "id": "q14_single_ingredient",
+    "category": "sparse_ingredients",
+    "ingredients": ["potato"],
+    "constraints": {}
+  },
+  {
+    "id": "q15_pantry_staples_only",
+    "category": "sparse_ingredients",
+    "ingredients": ["rice", "beans", "canned tomatoes"],
+    "constraints": {"dietary": ["vegetarian"]}
+  },
+  {
+    "id": "q16_large_ingredient_list",
+    "category": "many_ingredients",
+    "ingredients": ["chicken thighs", "potatoes", "carrots", "onion", "garlic", "rosemary", "thyme", "chicken broth", "butter", "flour"],
+    "constraints": {"max_time_minutes": 60}
+  },
+  {
+    "id": "q17_large_ingredient_list_dietary",
+    "category": "many_ingredients",
+    "ingredients": ["tofu", "broccoli", "carrot", "snap peas", "mushroom", "garlic", "ginger", "soy sauce", "sesame oil", "rice"],
+    "constraints": {"dietary": ["vegan", "dairy-free"], "max_time_minutes": 40}
+  },
+  {
+    "id": "q18_conflicting_vegan_and_meat",
+    "category": "conflicting_constraints",
+    "ingredients": ["chicken breast", "rice", "vegetables"],
+    "constraints": {"dietary": ["vegan"]},
+    "expected_behavior": "Critic should flag that a vegan recipe cannot be made from the given ingredients, or should substitute/omit the meat"
+  },
+  {
+    "id": "q19_conflicting_dairyfree_and_cheese_heavy",
+    "category": "conflicting_constraints",
+    "ingredients": ["cheese", "milk", "butter", "pasta"],
+    "constraints": {"dietary": ["dairy-free"]},
+    "expected_behavior": "Critic should flag that the ingredient list is inherently dairy, and either reject or heavily substitute"
+  },
+  {
+    "id": "q20_conflicting_glutenfree_and_wheat",
+    "category": "conflicting_constraints",
+    "ingredients": ["flour", "bread", "pasta", "soy sauce"],
+    "constraints": {"dietary": ["gluten-free"]},
+    "expected_behavior": "Critic should catch that regular soy sauce and wheat-based items violate gluten-free and adjust or reject"
+  },
+  {
+    "id": "q21_conflicting_time_and_complexity",
+    "category": "conflicting_constraints",
+    "ingredients": ["dried beans", "beef shank", "root vegetables"],
+    "constraints": {"max_time_minutes": 15},
+    "expected_behavior": "Ingredients imply a slow-cook dish; Critic should flag the 15-minute constraint as unrealistic or suggest a pressure-cooker adaptation"
+  },
+  {
+    "id": "q22_impossible_ingredient_combo",
+    "category": "edge_case",
+    "ingredients": ["ice cream", "raw fish", "hot sauce"],
+    "constraints": {},
+    "expected_behavior": "Should produce a coherent (if unusual) recipe rather than hallucinating an incoherent one, or should flag the combination as atypical"
+  },
+  {
+    "id": "q23_nonfood_or_ambiguous_input",
+    "category": "edge_case",
+    "ingredients": ["water", "salt"],
+    "constraints": {"max_time_minutes": 5},
+    "expected_behavior": "Should return a minimal valid recipe or gracefully indicate insufficient ingredients rather than fabricating one"
+  },
+  {
+    "id": "q24_allergy_critical_peanut",
+    "category": "allergy_safety",
+    "ingredients": ["chicken", "peanut sauce", "rice noodles", "cilantro"],
+    "constraints": {"dietary": ["nut-free"]},
+    "expected_behavior": "Critic must catch peanut sauce as a violation of nut-free; this is a safety-critical case, not just a preference"
+  },
+  {
+    "id": "q25_allergy_critical_shellfish",
+    "category": "allergy_safety",
+    "ingredients": ["shrimp", "garlic", "butter", "pasta"],
+    "constraints": {"dietary": ["shellfish-free"]},
+    "expected_behavior": "Critic must catch shrimp directly and either substitute or reject"
+  },
+  {
+    "id": "q26_high_protein_goal",
+    "category": "nutrition_goal",
+    "ingredients": ["chicken breast", "eggs", "greek yogurt", "quinoa"],
+    "constraints": {"nutrition_goal": "high-protein", "max_time_minutes": 30}
+  },
+  {
+    "id": "q27_low_calorie_goal",
+    "category": "nutrition_goal",
+    "ingredients": ["zucchini", "chicken breast", "spinach", "lemon"],
+    "constraints": {"nutrition_goal": "low-calorie", "max_time_minutes": 30}
+  },
+  {
+    "id": "q28_kid_friendly",
+    "category": "preference_soft_constraint",
+    "ingredients": ["ground beef", "pasta", "tomato sauce", "cheese"],
+    "constraints": {"preference": "kid-friendly", "max_time_minutes": 30}
+  },
+  {
+    "id": "q29_spicy_preference",
+    "category": "preference_soft_constraint",
+    "ingredients": ["chicken thighs", "chili peppers", "garlic", "lime"],
+    "constraints": {"preference": "spicy"}
+  },
+  {
+    "id": "q30_cuisine_specific_italian",
+    "category": "cuisine_constraint",
+    "ingredients": ["pasta", "tomatoes", "basil", "parmesan", "garlic"],
+    "constraints": {"cuisine": "italian", "max_time_minutes": 30}
+  },
+  {
+    "id": "q31_cuisine_specific_mexican_vegan",
+    "category": "cuisine_constraint",
+    "ingredients": ["black beans", "corn", "avocado", "lime", "cilantro"],
+    "constraints": {"cuisine": "mexican", "dietary": ["vegan"]}
+  },
+  {
+    "id": "q32_leftover_odd_combo",
+    "category": "real_world_pantry",
+    "ingredients": ["leftover rice", "half an onion", "one egg", "soy sauce"],
+    "constraints": {"max_time_minutes": 15}
+  },
+  {
+    "id": "q33_breakfast_specific",
+    "category": "meal_type",
+    "ingredients": ["eggs", "bread", "avocado", "tomato"],
+    "constraints": {"meal_type": "breakfast", "max_time_minutes": 15}
+  },
+  {
+    "id": "q34_dessert_specific",
+    "category": "meal_type",
+    "ingredients": ["flour", "sugar", "butter", "eggs", "chocolate chips"],
+    "constraints": {"meal_type": "dessert", "max_time_minutes": 45}
+  },
+  {
+    "id": "q35_dessert_vegan_glutenfree",
+    "category": "meal_type",
+    "ingredients": ["almond flour", "maple syrup", "coconut oil", "cocoa powder"],
+    "constraints": {"meal_type": "dessert", "dietary": ["vegan", "gluten-free"]}
+  },
+  {
+    "id": "q36_soup_stew",
+    "category": "meal_type",
+    "ingredients": ["carrots", "celery", "onion", "chicken broth", "chicken breast"],
+    "constraints": {"meal_type": "soup", "max_time_minutes": 45}
+  },
+  {
+    "id": "q37_extremely_long_time_budget",
+    "category": "time_pressure",
+    "ingredients": ["beef chuck roast", "carrots", "potatoes", "onion", "red wine"],
+    "constraints": {"max_time_minutes": 240}
+  },
+  {
+    "id": "q38_zero_dietary_zero_time_control",
+    "category": "control_no_constraints",
+    "ingredients": ["chicken", "rice", "vegetables"],
+    "constraints": {}
+  },
+  {
+    "id": "q39_repeated_ingredient_typo",
+    "category": "input_robustness",
+    "ingredients": ["chickn breast", "brocoli", "garlik"],
+    "constraints": {"max_time_minutes": 30},
+    "expected_behavior": "Retriever/Planner should still map misspelled ingredients to the correct items"
+  },
+  {
+    "id": "q40_duplicate_ingredients_in_list",
+    "category": "input_robustness",
+    "ingredients": ["garlic", "garlic", "onion", "chicken"],
+    "constraints": {},
+    "expected_behavior": "Should not treat duplicate entries as materially different from a deduplicated list"
+  },
+  {
+    "id": "q41_conflicting_dietary_tags",
+    "category": "conflicting_constraints",
+    "ingredients": ["tofu", "rice", "vegetables"],
+    "constraints": {"dietary": ["vegan", "high-protein-meat-based"]},
+    "expected_behavior": "Contradictory constraint tags should be caught and flagged rather than silently ignored"
+  },
+  {
+    "id": "q42_unrealistic_zero_time",
+    "category": "edge_case",
+    "ingredients": ["chicken breast", "rice", "broccoli"],
+    "constraints": {"max_time_minutes": 1},
+    "expected_behavior": "Should reject or flag as infeasible rather than returning a normal recipe with a fabricated 1-minute cook time"
+  },
+  {
+    "id": "q43_large_serving_size",
+    "category": "serving_scale",
+    "ingredients": ["ground beef", "pasta", "tomato sauce", "cheese"],
+    "constraints": {"servings": 12, "max_time_minutes": 60}
+  },
+  {
+    "id": "q44_single_serving",
+    "category": "serving_scale",
+    "ingredients": ["chicken breast", "rice", "broccoli"],
+    "constraints": {"servings": 1, "max_time_minutes": 25}
+  },
+  {
+    "id": "q45_keto_strict",
+    "category": "nutrition_goal",
+    "ingredients": ["salmon", "asparagus", "butter", "lemon"],
+    "constraints": {"dietary": ["keto"], "max_time_minutes": 30}
+  },
+  {
+    "id": "q46_keto_conflict_with_carb_ingredient",
+    "category": "conflicting_constraints",
+    "ingredients": ["potatoes", "rice", "bread", "chicken"],
+    "constraints": {"dietary": ["keto"]},
+    "expected_behavior": "Critic should flag that potatoes/rice/bread conflict with keto and substitute or reject"
+  },
+  {
+    "id": "q47_multiple_allergies_stacked",
+    "category": "allergy_safety",
+    "ingredients": ["shrimp", "peanut oil", "soy sauce", "rice"],
+    "constraints": {"dietary": ["shellfish-free", "nut-free", "soy-free"]},
+    "expected_behavior": "Multiple simultaneous allergy constraints should all be checked; this stresses the Critic's constraint-checking logic"
+  },
+  {
+    "id": "q48_ambiguous_quantity_free_input",
+    "category": "input_robustness",
+    "ingredients": ["some chicken", "a bit of garlic", "leftover veggies"],
+    "constraints": {"max_time_minutes": 30},
+    "expected_behavior": "Should handle informal/vague ingredient phrasing without breaking the pipeline"
+  },
+  {
+    "id": "q49_no_ingredients_provided",
+    "category": "edge_case",
+    "ingredients": [],
+    "constraints": {"dietary": ["vegetarian"]},
+    "expected_behavior": "Should gracefully handle empty input rather than crashing or hallucinating an ingredient list"
+  },
+  {
+    "id": "q50_all_constraints_stacked",
+    "category": "stress_test",
+    "ingredients": ["chickpeas", "quinoa", "spinach", "sweet potato", "tahini", "lemon"],
+    "constraints": {
+      "dietary": ["vegan", "gluten-free", "nut-free"],
+      "max_time_minutes": 30,
+      "nutrition_goal": "high-protein",
+      "cuisine": "mediterranean",
+      "servings": 4
+    },
+    "expected_behavior": "Every subsystem (Planner, Retriever, Generator, Critic) is stressed simultaneously; useful as a worst-case latency and correctness benchmark"
+  }
+]
