@@ -26,7 +26,8 @@ _FORBIDDEN: dict[str, list[str]] = {
     "vegan": [
         "chicken", "beef", "pork", "lamb", "turkey", "bacon", "sausage",
         "fish", "salmon", "tuna", "shrimp", "prawn", "lobster", "crab",
-        "milk", "cheese", "butter", "cream", "yogurt", "ghee",
+        "cow milk", "dairy milk", "whole milk", "skim milk", "heavy cream",
+        "sour cream", "cream cheese", "cheese", "butter", "yogurt", "ghee",
         "egg", "honey",
     ],
     "vegetarian": [
