@@ -70,7 +70,7 @@ def build_index():
         metadatas.append(
             {
                 "title": recipe["title"],
-                "ingredients": recipe["ingredients"],
+                "ingredients_json": json.dumps(recipe["ingredients"], ensure_ascii=False),
                 "instructions": recipe["instructions"],
             }
         )

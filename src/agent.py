@@ -4,6 +4,35 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
+_DIETARY_FORBIDDEN: Dict[str, List[str]] = {
+    "vegan": [
+        "chicken", "beef", "pork", "lamb", "turkey", "bacon", "sausage",
+        "fish", "salmon", "tuna", "shrimp", "prawn", "lobster", "crab",
+        # "milk" omitted — plant milks (coconut, almond, oat) are vegan
+        "cheese", "butter", "cream", "yogurt", "ghee", "egg", "honey",
+    ],
+    "vegetarian": [
+        "chicken", "beef", "pork", "lamb", "turkey", "bacon", "sausage",
+        "fish", "salmon", "tuna", "shrimp", "prawn", "lobster", "crab",
+    ],
+    "dairy-free": ["milk", "cheese", "butter", "cream", "yogurt", "ghee", "whey"],
+    "nut-free": [
+        "peanut", "almond", "cashew", "walnut", "pecan", "hazelnut",
+        "pistachio", "macadamia",
+    ],
+    "gluten-free": ["flour", "bread", "pasta", "wheat", "barley", "rye", "semolina"],
+    "shellfish-free": [
+        "shrimp", "prawn", "lobster", "crab", "scallop", "oyster", "mussel", "clam",
+    ],
+    "keto": ["potato", "rice", "bread", "pasta", "sugar", "flour", "corn", "beans"],
+}
+
+# Ingredients that contain a forbidden substring but are actually allowed.
+_DIETARY_EXCEPTIONS: Dict[str, List[str]] = {
+    "dairy-free": ["coconut milk", "almond milk", "oat milk", "soy milk", "rice milk", "hemp milk"],
+    "vegan": ["coconut cream", "coconut milk", "almond milk", "oat milk"],
+}
+
 from .generator import (
     GenerationConfig,
     generate_recipe,
@@ -21,6 +50,34 @@ class AgentResult:
     recipe_markdown: str
     raw_recipe: Dict
     retrieved_preview: str
+
+
+def _filter_by_dietary(candidates: List[Dict], dietary_tags: List[str]) -> List[Dict]:
+    """
+    Soft-filter retrieved candidates by dietary tags.
+    Returns compliant candidates first; falls back to the original list if none pass,
+    so the pipeline never returns empty-handed.
+    """
+    if not dietary_tags or not candidates:
+        return candidates
+
+    clean, violated = [], []
+    for recipe in candidates:
+        recipe_ings = [i.lower().strip() for i in recipe.get("ingredients", [])]
+        has_violation = False
+        for ing in recipe_ings:
+            exceptions = {e for tag in dietary_tags for e in _DIETARY_EXCEPTIONS.get(tag, [])}
+            if any(ing == exc or ing.startswith(exc) for exc in exceptions):
+                continue
+            for tag in dietary_tags:
+                if any(token in ing for token in _DIETARY_FORBIDDEN.get(tag, [])):
+                    has_violation = True
+                    break
+            if has_violation:
+                break
+        (violated if has_violation else clean).append(recipe)
+
+    return clean if clean else violated
 
 
 def _plan(user_ingredients: List[str]) -> List[str]:
@@ -72,6 +129,7 @@ def run_agent(
     model_provider: Optional[str] = None,
     model_id: Optional[str] = None,
     model_path: Optional[str] = None,
+    constraints: Optional[Dict] = None,
 ) -> AgentResult:
     status = []
     status.append("Agent analyzing ingredients...")
@@ -92,6 +150,10 @@ def run_agent(
     if use_retrieval:
         status.append("Retrieving similar recipes from memory...")
         candidates = retrieve(planned_ingredients, top_k=top_k)
+        dietary = (constraints or {}).get("dietary", [])
+        if dietary:
+            candidates = _filter_by_dietary(candidates, dietary)
+            status.append(f"Dietary filter applied ({', '.join(dietary)}): top candidate selected.")
         retrieved_recipe = candidates[0] if candidates else None
         retrieved_preview = _format_retrieved(retrieved_recipe)
 
